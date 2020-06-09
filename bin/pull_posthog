@@ -1,5 +1,5 @@
 rm -rf deploy
 mkdir deploy
-curl -L https://github.com/posthog/posthog/tarball/master | tar --strip-components=1 -xz --exclude-from=.tarignore -C deploy --
+curl -L https://github.com/posthog/posthog/tarball/0845e77b5c6ef65418ecf0778ba28316957abb9a | tar --strip-components=1 -xz --exclude-from=.tarignore -C deploy --
 cp -r multi_tenancy deploy/
 cp settings.py deploy/posthog/settings.py
