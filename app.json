@@ -6,7 +6,7 @@
   "environments": {
     "review": {
       "scripts": {
-        "postdeploy": ""
+        "postdeploy": "echo 'review'"
       },
       "env": {
         "DEBUG": true
@@ -34,7 +34,7 @@
       "heroku-postgresql"
   ],
   "scripts": {
-      "postdeploy": "bin/pull_posthog && cd deploy && pip install -r requirements.txt && cd frontend && yarn install && yarn build"
+      "postdeploy": "sh bin/pull_posthog && cd deploy && pip install -r requirements.txt && cd frontend && yarn install && yarn build"
   },
   "formation": {
       "web": {
