@@ -47,7 +47,7 @@
       }
   },
   "env": {
-      "IS_STAGING": false
+      "APP_ENV": "production"
       "SECRET_KEY": {
           "generator": "secret"
       }
