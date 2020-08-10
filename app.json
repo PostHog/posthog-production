@@ -10,6 +10,7 @@
       },
       "env": {
         "DEBUG": true
+        "APP_ENV": "production"
       },
       "buildpacks": [
         {"url": "heroku/nodejs"},
