@@ -2,13 +2,21 @@
 
 rm -rf deploy
 mkdir deploy
+git clone https://github.com/posthog/posthog deploy
+cd deploy
 
-if [ $IS_STAGING == true ]
+if [ "$APP_ENV" = "staging" ]
 then
-    curl -L https://github.com/PostHog/posthog/archive/$(git describe --tags $(git rev-list --tags --max-count=1)).tar.gz | tar --strip-components=1 -xz -C deploy --
+    git checkout master -q
+elif [ "$APP_ENV" = "production" ]
+then
+    git checkout $(git describe --tags $(git rev-list --tags --max-count=1)) -q
 else
-    curl -L https://github.com/PostHog/posthog/tarball/master | tar --strip-components=1 -xz -C deploy --   
+    echo "APP_ENV is not set correctly."
+    exit 1
+fi
 
+cd ..
 cp -r multi_tenancy deploy/
 
 cat multi_tenancy_settings.py >> deploy/posthog/settings.py
