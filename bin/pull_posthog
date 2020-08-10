@@ -1,6 +1,14 @@
+#!/bin/sh
+
 rm -rf deploy
 mkdir deploy
-curl -L https://github.com/posthog/posthog/tarball/master | tar --strip-components=1 -xz -C deploy --
+
+if [ $IS_STAGING == true ]
+then
+    curl -L https://github.com/PostHog/posthog/archive/$(git describe --tags $(git rev-list --tags --max-count=1)).tar.gz | tar --strip-components=1 -xz -C deploy --
+else
+    curl -L https://github.com/PostHog/posthog/tarball/master | tar --strip-components=1 -xz -C deploy --   
+
 cp -r multi_tenancy deploy/
 
 cat multi_tenancy_settings.py >> deploy/posthog/settings.py

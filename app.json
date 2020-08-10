@@ -47,6 +47,7 @@
       }
   },
   "env": {
+      "IS_STAGING": false
       "SECRET_KEY": {
           "generator": "secret"
       }
