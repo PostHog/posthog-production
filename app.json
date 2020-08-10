@@ -10,7 +10,6 @@
       },
       "env": {
         "DEBUG": true
-        "APP_ENV": "production"
       },
       "buildpacks": [
         {"url": "heroku/nodejs"},
@@ -48,7 +47,10 @@
       }
   },
   "env": {
-      "APP_ENV": "production"
+      "APP_ENV": {
+          "description": "Defines whether a staging or production environment should be deployed.",
+          "value": "production"
+      }
       "SECRET_KEY": {
           "generator": "secret"
       }
