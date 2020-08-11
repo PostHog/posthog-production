@@ -2,7 +2,7 @@
 
 rm -rf deploy
 mkdir deploy
-git clone https://github.com/posthog/posthog deploy/
+git clone https://github.com/posthog/posthog deploy
 cd deploy
 
 if [ "$APP_ENV" = "staging" ]; then
@@ -11,6 +11,7 @@ elif [ "$APP_ENV" = "production" ]; then
 	git checkout $(git describe --tags $(git rev-list --tags --max-count=1)) -q
 else
 	echo "APP_ENV is not set correctly."
+    exit 1
 fi
 
 cd ..

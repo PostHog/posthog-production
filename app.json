@@ -47,6 +47,9 @@
       }
   },
   "env": {
+      "APP_ENV": {
+          "value": "production"
+      }
       "SECRET_KEY": {
           "generator": "secret"
       }
