@@ -34,7 +34,7 @@
       "heroku-postgresql"
   ],
   "scripts": {
-      "postdeploy": "APP_ENV=production sh ./bin/pull_posthog && cd deploy && pip install -r requirements.txt && cd frontend && yarn install && yarn build"
+      "postdeploy": "bin/pull_posthog && cd deploy && pip install -r requirements.txt && cd frontend && yarn install && yarn build"
   },
   "formation": {
       "web": {
@@ -47,10 +47,6 @@
       }
   },
   "env": {
-      "APP_ENV": {
-          "description": "Defines whether a staging or production environment should be deployed.",
-          "value": "production"
-      },
       "SECRET_KEY": {
           "generator": "secret"
       }
