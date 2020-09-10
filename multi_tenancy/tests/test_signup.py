@@ -14,7 +14,7 @@ class TestTeamSignup(TransactionBaseTest):
             email="firstuser@posthog.com",
         )  # to ensure consistency in tests
 
-    @patch("posthog.api.team.EE_MISSING", True)
+    @patch("posthog.api.team.EE_AVAILABLE", False)
     @patch("messaging.tasks.process_team_signup_messaging.delay")
     @patch("posthog.api.team.posthoganalytics.identify")
     @patch("posthog.api.team.posthoganalytics.capture")
