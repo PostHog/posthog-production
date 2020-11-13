@@ -3,7 +3,7 @@
 echo -e "Purging deploy/...\n"
 rm -rf deploy
 mkdir deploy
-REVISION=${1:-master}
+REVISION=${1:-point-ch-cache}
 TARBALL_URL="https://github.com/posthog/posthog/tarball/${REVISION}"
 echo -e "Downloading ${TARBALL_URL}...\n"
 curl -L $TARBALL_URL | tar --strip-components=1 -xz -C deploy --
