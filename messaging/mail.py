@@ -8,7 +8,7 @@ from .models import UserMessagingRecord
 
 class Mail:
     FROM_ADDRESS: ClassVar[str] = "PostHog Team <hey@posthog.com>"
-    SLACK_COMMUNITY_LINK: ClassVar[str] = " https://posthog.com/slack"
+    SLACK_COMMUNITY_LINK: ClassVar[str] = "https://posthog.com/slack"
     DEMO_SESSION_LINK: ClassVar[str] = "https://calendly.com/timgl/30min"
     EMAIL_HEADERS: ClassVar[Dict[str, str]] = {"X-Mailgun-Tag": "product-suggestions"}
 
