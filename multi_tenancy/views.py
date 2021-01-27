@@ -63,7 +63,7 @@ def user_with_billing(request: HttpRequest):
 
     response = user(request)
 
-    if response.status_code == 200:
+    if response.status_code == 200 and request.user.organization:
         instance, _created = OrganizationBilling.objects.get_or_create(
             organization=request.user.organization,
         )
@@ -111,7 +111,8 @@ def user_with_billing(request: HttpRequest):
                             checkout_session,
                             customer_id,
                         ) = instance.create_checkout_session(
-                            user=request.user, base_url=request.build_absolute_uri("/"),
+                            user=request.user,
+                            base_url=request.build_absolute_uri("/"),
                         )
                     except ImproperlyConfigured as e:
                         capture_exception(e)
@@ -193,7 +194,8 @@ def billing_hosted_view(request: HttpRequest):
 def stripe_webhook(request: HttpRequest) -> JsonResponse:
     response: JsonResponse = JsonResponse({"success": True}, status=status.HTTP_200_OK)
     error_response: JsonResponse = JsonResponse(
-        {"success": False}, status=status.HTTP_400_BAD_REQUEST,
+        {"success": False},
+        status=status.HTTP_400_BAD_REQUEST,
     )
     signature: str = request.META.get("HTTP_STRIPE_SIGNATURE", "")
 
