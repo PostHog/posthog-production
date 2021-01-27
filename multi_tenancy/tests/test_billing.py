@@ -11,6 +11,7 @@ from ee.clickhouse.models.event import create_event
 from freezegun import freeze_time
 from multi_tenancy.models import OrganizationBilling, Plan
 from posthog.api.test.base import APIBaseTest, BaseTest, TransactionBaseTest
+from posthog.models import User
 from rest_framework import status
 
 from .base import PlanTestMixin
@@ -43,7 +44,8 @@ class TestOrganizationBilling(BaseTest, PlanTestMixin):
         organization, _, _ = self.create_org_team_user()
 
         billing = OrganizationBilling.objects.create(
-            organization=organization, should_setup_billing=True,
+            organization=organization,
+            should_setup_billing=True,
         )
 
         # No plan
@@ -69,7 +71,9 @@ class TestOrganizationBilling(BaseTest, PlanTestMixin):
         organization, _, _ = self.create_org_team_user()
 
         # No plan
-        billing = OrganizationBilling.objects.create(organization=organization,)
+        billing = OrganizationBilling.objects.create(
+            organization=organization,
+        )
         self.assertEqual(billing.available_features, [])
 
         # Inactive plan
@@ -152,7 +156,8 @@ class TestAPIOrganizationBilling(TransactionBaseTest, PlanTestMixin):
     def test_team_that_should_not_set_up_billing(self):
         organization, team, user = self.create_org_team_user()
         OrganizationBilling.objects.create(
-            organization=organization, should_setup_billing=False,
+            organization=organization,
+            should_setup_billing=False,
         )
         self.client.force_login(user)
 
@@ -176,15 +181,19 @@ class TestAPIOrganizationBilling(TransactionBaseTest, PlanTestMixin):
 
     @patch("multi_tenancy.stripe._get_customer_id")
     def test_team_that_should_set_up_billing_starts_a_checkout_session(
-        self, mock_customer_id,
+        self,
+        mock_customer_id,
     ):
         mock_customer_id.return_value = "cus_000111222"
         organization, team, user = self.create_org_team_user()
         plan = self.create_plan(
-            custom_setup_billing_message="Sign up now!", event_allowance=50000,
+            custom_setup_billing_message="Sign up now!",
+            event_allowance=50000,
         )
         instance: OrganizationBilling = OrganizationBilling.objects.create(
-            organization=organization, should_setup_billing=True, plan=plan,
+            organization=organization,
+            should_setup_billing=True,
+            plan=plan,
         )
         self.client.force_login(user)
 
@@ -194,17 +203,20 @@ class TestAPIOrganizationBilling(TransactionBaseTest, PlanTestMixin):
             self.assertEqual(response.status_code, status.HTTP_200_OK)
 
             self.assertIn(
-                "cus_000111222", log.output[0],
+                "cus_000111222",
+                log.output[0],
             )  # customer ID is included in the payload to Stripe
 
             self.assertIn(
-                plan.price_id, log.output[0],
+                plan.price_id,
+                log.output[0],
             )  # Correct price ID is used
 
         response_data: Dict = response.json()
         self.assertEqual(response_data["billing"]["should_setup_billing"], True)
         self.assertEqual(
-            response_data["billing"]["stripe_checkout_session"], "cs_1234567890",
+            response_data["billing"]["stripe_checkout_session"],
+            "cs_1234567890",
         )
         self.assertEqual(
             response_data["billing"]["subscription_url"],
@@ -235,7 +247,9 @@ class TestAPIOrganizationBilling(TransactionBaseTest, PlanTestMixin):
     @patch("multi_tenancy.stripe._get_customer_id")
     @patch("multi_tenancy.stripe.stripe.checkout.Session.create")
     def test_startup_team_starts_checkout_session(
-        self, mock_checkout, mock_customer_id,
+        self,
+        mock_checkout,
+        mock_customer_id,
     ):
         """
         Startup is handled with custom logic, because only a validation charge is made
@@ -250,7 +264,9 @@ class TestAPIOrganizationBilling(TransactionBaseTest, PlanTestMixin):
         organization, team, user = self.create_org_team_user()
         plan = self.create_plan(key="startup")
         instance: OrganizationBilling = OrganizationBilling.objects.create(
-            organization=organization, should_setup_billing=True, plan=plan,
+            organization=organization,
+            should_setup_billing=True,
+            plan=plan,
         )
         self.client.force_login(user)
 
@@ -281,7 +297,8 @@ class TestAPIOrganizationBilling(TransactionBaseTest, PlanTestMixin):
         response_data: Dict = response.json()
         self.assertEqual(response_data["billing"]["should_setup_billing"], True)
         self.assertEqual(
-            response_data["billing"]["stripe_checkout_session"], "cs_1234567890",
+            response_data["billing"]["stripe_checkout_session"],
+            "cs_1234567890",
         )
         self.assertEqual(
             response_data["billing"]["subscription_url"],
@@ -304,7 +321,8 @@ class TestAPIOrganizationBilling(TransactionBaseTest, PlanTestMixin):
         # Check that the checkout session was saved to the database
         instance.refresh_from_db()
         self.assertEqual(
-            instance.stripe_checkout_session, "cs_1234567890",
+            instance.stripe_checkout_session,
+            "cs_1234567890",
         )
         self.assertEqual(instance.stripe_customer_id, "cus_000111222")
 
@@ -326,7 +344,9 @@ class TestAPIOrganizationBilling(TransactionBaseTest, PlanTestMixin):
         organization, team, user = self.create_org_team_user()
         plan = self.create_plan(key="usage1", is_metered_billing=True)
         instance: OrganizationBilling = OrganizationBilling.objects.create(
-            organization=organization, should_setup_billing=True, plan=plan,
+            organization=organization,
+            should_setup_billing=True,
+            plan=plan,
         )
         self.client.force_login(user)
 
@@ -357,7 +377,8 @@ class TestAPIOrganizationBilling(TransactionBaseTest, PlanTestMixin):
         response_data: Dict = response.json()
         self.assertEqual(response_data["billing"]["should_setup_billing"], True)
         self.assertEqual(
-            response_data["billing"]["stripe_checkout_session"], "cs_usage_1234567890",
+            response_data["billing"]["stripe_checkout_session"],
+            "cs_usage_1234567890",
         )
         self.assertEqual(
             response_data["billing"]["subscription_url"],
@@ -380,13 +401,15 @@ class TestAPIOrganizationBilling(TransactionBaseTest, PlanTestMixin):
         # Check that the checkout session was saved to the database
         instance.refresh_from_db()
         self.assertEqual(
-            instance.stripe_checkout_session, "cs_usage_1234567890",
+            instance.stripe_checkout_session,
+            "cs_usage_1234567890",
         )
         self.assertEqual(instance.stripe_customer_id, "cus_000111222")
 
     @patch("multi_tenancy.stripe._get_customer_id")
     def test_already_active_checkout_session_uses_same_session(
-        self, mock_customer_id,
+        self,
+        mock_customer_id,
     ):
         organization, team, user = self.create_org_team_user()
         plan = self.create_plan()
@@ -423,7 +446,8 @@ class TestAPIOrganizationBilling(TransactionBaseTest, PlanTestMixin):
 
     @patch("multi_tenancy.stripe._get_customer_id")
     def test_expired_checkout_session_generates_a_new_one(
-        self, mock_customer_id,
+        self,
+        mock_customer_id,
     ):
         mock_customer_id.return_value = "cus_000111222"
         organization, team, user = self.create_org_team_user()
@@ -507,7 +531,8 @@ class TestAPIOrganizationBilling(TransactionBaseTest, PlanTestMixin):
             response_data: Dict = self.client.post("/api/user/").json()
 
         self.assertNotIn(
-            "should_setup_billing", response_data["billing"],
+            "should_setup_billing",
+            response_data["billing"],
         )
 
         instance.refresh_from_db()
@@ -557,8 +582,23 @@ class TestAPIOrganizationBilling(TransactionBaseTest, PlanTestMixin):
 
         # Even though default caching time is 12 hours, the result is only cached until beginning of next month
         self.assertEqual(
-            cache._expire_info.get(cache.make_key(cache_key)), 1546300800.0,
+            cache._expire_info.get(cache.make_key(cache_key)),
+            1546300800.0,
         )  # 1546300800 = Jan 1, 2019 00:00 UTC
+
+    def test_user_with_no_org(self):
+        """
+        Tests the edge case of user not belonging to any organization to make sure the `/api/user` request is handled
+        gracefully.
+        """
+
+        user = User.objects.create(email="alone@posthog.com")
+        self.client.force_login(user)
+        response = self.client.post("/api/user/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data: Dict = response.json()
+        self.assertEqual(response_data["organization"], None)
+        self.assertEqual(response_data["email"], "alone@posthog.com")
 
     # Manage billing
 
@@ -587,7 +627,8 @@ class TestAPIOrganizationBilling(TransactionBaseTest, PlanTestMixin):
 
         organization, team, user = self.create_org_team_user()
         OrganizationBilling.objects.create(
-            organization=organization, should_setup_billing=True,
+            organization=organization,
+            should_setup_billing=True,
         )
         self.client.force_login(user)
 
@@ -630,7 +671,8 @@ class TestAPIOrganizationBilling(TransactionBaseTest, PlanTestMixin):
 
     @patch("multi_tenancy.stripe._get_customer_id")
     def test_organization_can_enroll_in_self_serve_plan_without_having_an_organization_billing_yet(
-        self, mock_customer_id,
+        self,
+        mock_customer_id,
     ):
         mock_customer_id.return_value = "cus_000111222"
         organization, team, user = self.create_org_team_user()
@@ -690,7 +732,8 @@ class PlanTestCase(APIBaseTest, PlanTestMixin):
         response = self.client.get("/plans")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
-            response.data["count"], Plan.objects.exclude(is_active=False).count(),
+            response.data["count"],
+            Plan.objects.exclude(is_active=False).count(),
         )
 
         for item in response.data["results"]:
@@ -711,13 +754,15 @@ class PlanTestCase(APIBaseTest, PlanTestMixin):
 
             if obj.event_allowance:
                 self.assertEqual(
-                    item["allowance"], {"value": 49334, "formatted": "49.3K"},
+                    item["allowance"],
+                    {"value": 49334, "formatted": "49.3K"},
                 )
 
             retrieve_response = self.client.get(f"/plans/{obj.key}")
             self.assertEqual(retrieve_response.status_code, status.HTTP_200_OK)
             self.assertEqual(
-                retrieve_response.data, item,
+                retrieve_response.data,
+                item,
             )  # Retrieve response is equal to list response
 
     def test_list_self_serve_plans(self):
